@@ -15,7 +15,7 @@ Linf <- subset(model$Growth_Parameters, Sex==1, Linf, drop=TRUE)
 t <- 0:20
 
 growth_Arni <- function(t) {
-  L1^b + (L2^b - L1^b) * ((1 - exp(-k * (t - A1))) / (1 - exp(-k * (A2 - A1))))^(1 / b)
+  (L1^b + (L2^b - L1^b) * ((1 - exp(-k * (t - A1))) / (1 - exp(-k * (A2 - A1)))))^(1 / b)
 }
 plot(model$endgrowth |> dplyr::filter(Sex == 1) |> dplyr::select(Age_Beg, Len_Beg),
   xlim = c(0, 5), ylim = c(0, 80)
