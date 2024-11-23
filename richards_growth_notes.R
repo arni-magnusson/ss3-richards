@@ -1,39 +1,18 @@
 # notes on Richards/Schnute growth equation in SS3
 
-model <- SS_output("inst/extdata/simple_small_richards")
-A1 <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(A1) |>
-  as.numeric()
-A2 <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(A2) |>
-  as.numeric()
-L1 <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(L_a_A1) |>
-  as.numeric()
-L2 <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(L_a_A2) |>
-  as.numeric()
-k <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(K) |>
-  as.numeric()
-b <- model$parameters["Richards_Fem_GP_1", "Value"] |> as.numeric()
+library(r4ss)
 
-Linf <- model$Growth_Parameters |>
-  dplyr::filter(Sex == 1) |>
-  dplyr::select(Linf) |>
-  as.numeric()
+model <- SS_output("simple_small_richards")
 
-t <- 10
-model$endgrowth |>
-  dplyr::filter(Sex == 1, Age_Beg == t) |>
-  dplyr::select(Len_Beg)
-#   Len_Beg
-# 1 66.3251
+A1 <- subset(model$Growth_Parameters, Sex==1, A1, drop=TRUE)
+A2 <- subset(model$Growth_Parameters, Sex==1, A2, drop=TRUE)
+L1 <- subset(model$Growth_Parameters, Sex==1, L_a_A1, drop=TRUE)
+L2 <- subset(model$Growth_Parameters, Sex==1, L_a_A2, drop=TRUE)
+k <- subset(model$Growth_Parameters, Sex==1, K, drop=TRUE)
+b <- model$parameters["Richards_Fem_GP_1", "Value"]
+Linf <- subset(model$Growth_Parameters, Sex==1, Linf, drop=TRUE)
+
+t <- 0:20
 
 growth_Arni <- function(t) {
   L1^b + (L2^b - L1^b) * ((1 - exp(-k * (t - A1))) / (1 - exp(-k * (A2 - A1))))^(1 / b)
