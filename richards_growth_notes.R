@@ -21,20 +21,15 @@ growth_Arni <- function(t, L1, L2, k, b, A1, A2)
 plot(Len_Beg~Age_Beg, model$endgrowth, subset=Sex==1, ylim=c(0,80))
 lines(t, growth_Arni(t, L1, L2, k, b, A1, A2))
 
-# variable names present in the SS3 source code
-AFIX_delta <- A2 - A1
-
-LminR <- L1^b
-LmaxR <- L2^b
-# Linf calculated at https://github.com/nmfs-ost/ss3-source-code/blob/3f26fa7999b6398698e094b012cc5f3f4a1e1850/SS_biofxn.tpl#L353
-LinfR <- LminR + (LmaxR - LminR) / (1 - exp(-k * (A2 - A1)))
-
-# Length at age calculated in https://github.com/nmfs-ost/ss3-source-code/blob/3f26fa7999b6398698e094b012cc5f3f4a1e1850/SS_biofxn.tpl#L473-L474
-growth_code <- function(t) {
-  temp <- LinfR + (LminR - LinfR) * exp(-k * (t - A1))
-  temp^(1 / b)
+growth_code <- function(t, L1, L2, k, b, A1, A2)
+{
+  LminR <- L1^b
+  LmaxR <- L2^b
+  LinfR <- LminR + (LmaxR - LminR) / (1 - exp(-k*(A2-A1)))
+  temp <- LinfR + (LminR - LinfR) * exp(-k*(t-A1))
+  temp^(1/b)
 }
-lines(0:20, growth_code(0:20), col = 2)
+lines(t, growth_code(t, L1, L2, k, b, A1, A2), lty=3, lwd=3, col=2)
 
 # table to compare different sources
 comparison <- data.frame(
