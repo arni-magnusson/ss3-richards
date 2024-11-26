@@ -216,8 +216,8 @@ demonstrated in Section \ref{sec:special_cases}.
 
 The above demonstrations comparing the Stock Synthesis output, `ss3_code()` and
 `schnute()` indicates that they are mathematically equivalent, meaning that the
-same parameter input results in the same growth curve. The equivalence can also
-be proven algebraically.
+same parameter input produces the same growth curve. The equivalence can also be
+proven algebraically.
 
 In Stock Synthesis, the Richards growth curve is implemented as
 
