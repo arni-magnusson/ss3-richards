@@ -1,0 +1,335 @@
+\documentclass[fleqn]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage[hidelinks,linktoc=all,pdfpagemode=None]{hyperref}
+\begin{document}
+
+<<echo=FALSE>>=
+knit_theme$set(knit_theme$get("moe"))
+@
+
+\title{Notes on Richards growth in Stock Synthesis}
+\author{Arni Magnusson and Ian Taylor}
+\date{26 November 2024}
+\maketitle
+
+\tableofcontents
+
+\vspace{4ex}
+
+\section{Introduction}
+
+The equations used in the Stock Synthesis implementation of the Richards curve,
+as found in the ADMB source code, are different from the equations in the Stock
+Synthesis User Manual (Methot et al. 2024). This vignette (1) shows that the
+equations are equivalent and (2) demonstrates the various shapes of the Richards
+curve shapes using different values for the $k$ and $b$ parameters.
+
+\newpage
+
+\section{Methods}
+
+Load the \verb|r4ss| package, so we can import Stock Synthesis model output.
+
+<<message=FALSE>>=
+library(r4ss)
+@
+
+\subsection{ss3\_code}
+
+The following R function replicates the Richards growth implementation from the
+Stock Synthesis ADMB source code.
+
+<<>>=
+ss3_code <- function(t, L1, L2, k, b, A1, A2)
+{
+  LminR <- L1^b
+  LmaxR <- L2^b
+  LinfR <- LminR + (LmaxR - LminR) / (1 - exp(-k*(A2-A1)))
+  temp <- LinfR + (LminR - LinfR) * exp(-k*(t-A1))
+  temp^(1/b)
+}
+@
+
+\subsection{schnute}
+
+The Schnute parametrization of the Richards curve is from Schnute (1981, Eq. 15,
+case 1).
+
+<<>>=
+schnute <- function(t, L1, L2, k, b, A1, A2)
+{
+  (L1^b + (L2^b-L1^b) * ((1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1)))))^(1/b)
+}
+@
+
+\subsection{von\_bertalanffy}
+
+The reparametrized von Bertalanffy function is from Schnute and Fournier (1980,
+Eq. 7).
+
+<<>>=
+von_bertalanffy <- function(t, L1, L2, k, A1, A2)
+{
+  L1 + (L2-L1) * (1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1)))
+}
+@
+
+\subsection{gompertz}
+
+Finally, a standard Gompertz function is found in Schnute (1981, Eq. 2).
+
+<<>>=
+gompertz <- function(t, Linf, tau)
+{
+  Linf * exp(-exp(-k*(t-tau)))
+}
+@
+
+\newpage
+
+\section{Results}
+
+\subsection{Stock Synthesis model output}
+
+Read estimated growth parameters from a fitted Stock Synthesis model.
+
+<<message=FALSE, results="hide">>==
+model <- SS_output("simple_small_richards")
+A1 <- subset(model$Growth_Parameters, Sex==1, A1, drop=TRUE)
+A2 <- subset(model$Growth_Parameters, Sex==1, A2, drop=TRUE)
+L1 <- subset(model$Growth_Parameters, Sex==1, L_a_A1, drop=TRUE)
+L2 <- subset(model$Growth_Parameters, Sex==1, L_a_A2, drop=TRUE)
+k <- subset(model$Growth_Parameters, Sex==1, K, drop=TRUE)
+b <- model$parameters["Richards_Fem_GP_1", "Value"]
+Linf <- subset(model$Growth_Parameters, Sex==1, Linf, drop=TRUE)
+@
+
+Compare three growth curves: length-at-age reported in the Stock Synthesis
+output, predicted lengths using the \verb|ss3_code()| function, and predicted
+lengths using the \verb|schnute()| function.
+
+<<fig.width=6, fig.height=8, fig.align="center", out.width="48%">>=
+t <- 0:20
+plot(Len_Beg~Age_Beg, model$endgrowth, subset=Sex==1, ylim=c(0,80),
+     xlab="age", ylab="length", type="l", lwd=1.5, col=2)
+points(t, ss3_code(t, L1, L2, k, b, A1, A2))
+points(t, schnute(t, L1, L2, k, b, A1, A2), pch=3)
+legend("bottomright", c("ss_output", "ss3_code", "schnute"),
+       pch=c(NA, 1, 3), lty=c(1, NA, NA), lwd=c(1.5, NA, NA),
+       col=c(2, 1, 1), bty="n", inset=0.02, y.intersp=1.5)
+@
+
+The predicted length from the \verb|ss3_code()| and \verb|schnute()| functions
+are in perfect agreement with each other. They are the same predicted lengths as
+reported in the Stock Synthesis output, except for the oldest age which is
+treated as a plus group inside the model, containing age 20 and older.
+
+\newpage
+
+<<>>=
+comparison <- data.frame(
+  age = t,
+  ss_output = subset(model$endgrowth, Sex==1, Len_Beg, drop=TRUE),
+  ss3_code = ss3_code(t, L1, L2, k, b, A1, A2),
+  schnute = schnute(t, L1, L2, k, b, A1, A2)
+)
+print(comparison, row.names=FALSE)
+@
+
+\newpage
+
+\subsection{Special cases}
+\label{sec:special_cases}
+
+Special cases of the Richards curve include the von Bertalanffy ($b\!=\!1$) and
+Gompertz ($b\!\to\!1$) models. In the plot below, the lines are drawn using the
+actual von Bertalanffy and Gompertz functions, and the circles are drawn using
+the Richards curve with the appropriate values for the $b$ parameter.
+
+<<fig.width=6, fig.height=8, fig.align="center", out.width="48%">>=
+plot(NA, xlim=range(t), ylim=c(0,80), xlab="age", ylab="length")
+lines(t, von_bertalanffy(t, L1, L2, k, A1, A2), ylim=c(0,80), lwd=2, col=2)
+points(t, schnute(t, L1, L2, k, 1, A1, A2), col=2)
+lines(t, gompertz(t, Linf, k), lwd=2, col=4)
+Lg1 <- gompertz(A1, Linf, k)
+Lg2 <- gompertz(A2, Linf, k)
+points(t, schnute(t, Lg1, Lg2, k, 0.0001, A1, A2), col=4)
+legend("topleft", c("von Bertalanffy (b=1)","Gompertz (b near 0)"),
+       lwd=2, col=c(2,4), bty="n", inset=0.02, y.intersp=1.5)
+@
+
+\newpage
+
+\subsection{Richards growth curves with different $k$ and $b$ combinations}
+\label{sec:b_combinations}
+
+<<fig.width=6, fig.height=6, fig.align="center", out.width="52%">>=
+x <- seq(0, 20, by=0.1)
+L1 <- 5
+L2 <- 80
+A1 <- 0
+A2 <- 20
+
+plot(NA, xlim=range(x), ylim=c(0, 80), xlab="age", ylab="length")
+z <- rich.colors.short(6)
+
+lines(x, schnute(x, L1, L2, k=0.8,    b=-3,     A1, A2), lwd=2, col=z[1])
+lines(x, schnute(x, L1, L2, k=0.8,    b=-2,     A1, A2), lwd=2, col=z[1])
+lines(x, schnute(x, L1, L2, k=0.8,    b=-1,     A1, A2), lwd=2, col=z[1])
+lines(x, schnute(x, L1, L2, k=0.4,    b=-1,     A1, A2), lwd=2, col=z[1])
+lines(x, schnute(x, L1, L2, k=0.4,    b=0.0001, A1, A2), lwd=2, col=z[2])
+lines(x, schnute(x, L1, L2, k=0.2,    b=0.0001, A1, A2), lwd=2, col=z[2])
+lines(x, schnute(x, L1, L2, k=0.4,    b=1,      A1, A2), lwd=2, col=z[3])
+lines(x, schnute(x, L1, L2, k=0.2,    b=1,      A1, A2), lwd=2, col=z[3])
+lines(x, schnute(x, L1, L2, k=0.1,    b=1,      A1, A2), lwd=2, col=z[3])
+lines(x, schnute(x, L1, L2, k=0.2,    b=2,      A1, A2), lwd=2, col=z[4])
+lines(x, schnute(x, L1, L2, k=0.1,    b=2,      A1, A2), lwd=2, col=z[4])
+lines(x, schnute(x, L1, L2, k=0.0001, b=2,      A1, A2), lwd=2, col=z[4])
+lines(x, schnute(x, L1, L2, k=0.2,    b=3,      A1, A2), lwd=2, col=z[5])
+lines(x, schnute(x, L1, L2, k=0.1,    b=3,      A1, A2), lwd=2, col=z[5])
+lines(x, schnute(x, L1, L2, k=0.0001, b=3,      A1, A2), lwd=2, col=z[5])
+lines(x, schnute(x, L1, L2, k=0.1,    b=4,      A1, A2), lwd=2, col=z[6])
+lines(x, schnute(x, L1, L2, k=0.0001, b=4,      A1, A2), lwd=2, col=z[6])
+lines(x, schnute(x, L1, L2, k=0.0001, b=5,      A1, A2), lwd=2, col=z[6])
+lines(x, schnute(x, L1, L2, k=0.0001, b=6,      A1, A2), lwd=2, col=z[6])
+
+legend("bottomright", c("b: 4 to 6", "b: 3", "b: 2", "b: 1", "b: 0.001",
+       "b: -1 to -3"), lwd=2.5, col=rev(z), bty="n", inset=0.02, y.intersp=1.2)
+@
+
+\section{Discussion}
+
+\subsection{Range of permissible $b$ values}
+
+The Schnute parametrization of the Richards curve used in Stock Synthesis can
+produce a wide variety of shapes, based on the value of the $b$ parameter, as
+demonstrated in Section \ref{sec:b_combinations}. When $A_1$ is greater than the
+youngest age in the model, some combinations of Richards growth parameters can
+lead to undefined (\verb|NaN|) predicted length for the younger ages. The choice
+of $A_1$ and $A_2$ will affect the possible growth curves shapes.
+
+The one value of $b$ that is not allowed when using the Richards growth curve in
+Stock Synthesis is $b\!=\!0$. This also holds for the R functions
+\verb|ss3_code()| and \verb|schnute()| used in this vignette. When estimating
+$b$ as a floating-point number, there is effectively no risk of the parameter
+having the value of precisely zero, as long as the initial value is non-zero. To
+use a Gompertz growth curve, the $b$ parameter can be fixed at a small value
+such as 0.0001, as demonstrated in Section \ref{sec:special_cases}.
+
+\subsection{Proof of {\tt ss3\_code()} being equivalent to {\tt schnute()}}
+
+The above demonstrations comparing the Stock Synthesis output, \verb|ss3_code()|
+and \verb|schnute()| indicate that they are mathematically equivalent, meaning
+that the same parameter input produces the same growth curve. The equivalence
+can also be proven algebraically.
+
+In Stock Synthesis, the Richards growth curve is implemented as
+
+<<>>=
+ss3_code <- function(t, L1, L2, k, b, A1, A2)
+{
+  LminR <- L1^b
+  LmaxR <- L2^b
+  LinfR <- LminR + (LmaxR - LminR) / (1 - exp(-k*(A2-A1)))
+  temp <- LinfR + (LminR - LinfR) * exp(-k*(t-A1))
+  temp^(1/b)
+}
+@
+
+\vspace{-4.5ex}
+
+\begin{eqnarray*}
+  L_t &=& \Big[\,L_{\infty R} \;+\; (L_1^b-L_{\infty R})\,
+          e^{-k(t-A_1)}\,\Big]^{1/b}
+\end{eqnarray*}
+
+\vspace{-2ex}
+
+where:
+
+\vspace{-5ex}
+
+\begin{eqnarray*}
+  L_{\infty R} &=& L_1^b \;+\; \frac{L_2^b\,-\,L_1^b}{1-e^{-k(A_2-A_1)}}
+\end{eqnarray*}
+
+\vspace{-1ex}
+
+We proceed by replacing $L_{\infty R}$ with its definition and then gradually
+simplify the equation:
+
+\vspace{-3.5ex}
+
+\begin{eqnarray*}
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
+          \left(L_1^b\,-\,\Big[L_1^b \,+\,
+          \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\Big]\right)
+          e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
+          \left(L_1^b\,-\, L_1^b \,-\, \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}
+          \right) e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;-\;
+          \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\, e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; (L_2^b-L_1^b)\,\frac{1}{1-e^{-k(A_2-A_1)}} \;-\;
+          (L_2^b-L_1^b)\,\frac{e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\bigg]^{1/b}\\
+  L_t &=& \left[\:L_1^b\;+\;(L_2^b-L_1^b)\,
+          \frac{1-e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\right]^{1/b}
+\end{eqnarray*}
+
+\vspace{0.5ex}
+
+<<>>=
+schnute <- function(t, L1, L2, k, b, A1, A2)
+{
+  (L1^b + (L2^b-L1^b) * ((1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1)))))^(1/b)
+}
+@
+
+\subsection{FSA package}
+
+The FSA package on CRAN (Ogle et al. 2023) is a useful reference to navigate
+through the plethora of alternative parametrizations of different growth curves.
+Among the FSA function calls that are relevant to this vignette are:
+
+\vspace{1ex}
+
+\begin{verbatim}
+library(FSA)
+Schnute(t, case=1, ...)
+Schnute(t, case=2, ...)
+\end{verbatim}
+
+\vspace{1ex}
+
+Schnute case 1 (Schnute 1981, Eq. 15) is the same as \verb|schnute()| used in
+this vignette.
+
+Schnute case 2 (Schnute 1981, Eq. 16) is a Gompertz growth model parametrized
+with $L_1$, $L_2$, and $k$, similar to \verb|ss3_code()| and \verb|schnute()|
+when $b$ is fixed at nearly 0.
+
+\vspace{1ex}
+
+\section{References}
+
+\sloppy\setlength\hyphenpenalty{1000}\selectfont\frenchspacing
+\begin{description}\setlength\itemsep{0.5ex}\vspace{0.5ex}
+  \item Methot, R.D., Jr., C.R. Wetzel, I.G. Taylor, K.L. Doering, E.F. Perl,
+  and K.F. Johnson. 2024. Stock Synthesis User Manual Version 3.30.23.
+  \url{https://github.com/nmfs-ost/ss3-doc/releases}
+
+  \item Ogle D.H, J.C. Doll, A.P. Wheeler, and A. Dinno. 2023. FSA: Simple
+  Fisheries Stock Assessment Methods. R package version 0.9.5.
+  \url{https://cran.r-project.org/package=FSA}
+
+  \item Schnute, J. 1981. A versatile growth model with statistical stable
+  parameters. Can. J. Fish. Aquat. Sci. 38:1128--1140.
+  \url{https://doi.org/10.1139/f81-153}
+
+  \item Schnute, J. and D. Fournier. 1980. A new approach to length-frequence
+  analysis: Growth structure. Can. J. Fish. Aquat. Sci. 37:1337--1351.
+  \url{https://doi.org/10.1139/f80-172}
+\end{description}
+
+\end{document}
