@@ -2,6 +2,7 @@
 title:  Notes on Richards growth in Stock Synthesis
 author: Arni Magnusson and Ian Taylor
 date:   26 November 2024
+date-format: "D MMMM YYYY"
 format:
   pdf:
     classoption: [fleqn]
