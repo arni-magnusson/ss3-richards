@@ -4,6 +4,7 @@ author: Arni Magnusson and Ian Taylor
 date:   26 November 2024
 format:
   pdf:
+    classoption: [fleqn]
     number-sections: true
     toc: true
 ---
@@ -226,35 +227,45 @@ ss3_code <- function(t, L1, L2, k, b, A1, A2)
 }
 ```
 
-$L_t ~=~ \Big[\,L_{\infty R} \;+\; (L_1^b-L_{\infty R})\,
-         e^{-k(t-A_1)}\,\Big]^{1/b}$
+\vspace{-8ex}
+
+\begin{eqnarray*}
+  L_t &=& \Big[\,L_{\infty R} \;+\; (L_1^b-L_{\infty R})\,
+          e^{-k(t-A_1)}\,\Big]^{1/b}
+\end{eqnarray*}
+
+\vspace{-3ex}
 
 where:
 
-$L_{\infty R} ~=~ L_1^b \;+\; \frac{L_2^b\,-\,L_1^b}{1-e^{-k(A_2-A_1)}}$
+\vspace{-7ex}
+
+\begin{eqnarray*}
+  L_{\infty R} &=& L_1^b \;+\; \frac{L_2^b\,-\,L_1^b}{1-e^{-k(A_2-A_1)}}
+\end{eqnarray*}
+
+\vspace{-2ex}
 
 We proceed by replacing $L_{\infty R}$ with its definition and then gradually
 simplify the equation:
 
-$L_t ~=~ \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
-         \left(L_1^b\,-\,\Big[L_1^b \,+\,
-         \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\Big]\right)
-         e^{-k(t-A_1)}\,\bigg]^{1/b}$
+\vspace{-5ex}
 
-$L_t ~=~ \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
-         \left(L_1^b\,-\, L_1^b \,-\, \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}
-         \right) e^{-k(t-A_1)}\,\bigg]^{1/b}$
-
-$L_t ~=~ \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;-\;
-         \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\, e^{-k(t-A_1)}\,\bigg]^{1/b}$
-
-$L_t ~=~ \bigg[\,L_1^b \;+\; (L_2^b-L_1^b)\,\frac{1}{1-e^{-k(A_2-A_1)}} \;-\;
-         (L_2^b-L_1^b)\,\frac{e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\bigg]^{1/b}$
-
-$L_t ~=~ \left[\:L_1^b\;+\;(L_2^b-L_1^b)\,
-         \frac{1-e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\right]^{1/b}$
-
-\vspace{2ex}
+\begin{eqnarray*}
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
+          \left(L_1^b\,-\,\Big[L_1^b \,+\,
+          \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\Big]\right)
+          e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;+\;
+          \left(L_1^b\,-\, L_1^b \,-\, \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}
+          \right) e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}} \;-\;
+          \frac{L_2^b-L_1^b}{1-e^{-k(A_2-A_1)}}\, e^{-k(t-A_1)}\,\bigg]^{1/b}\\
+  L_t &=& \bigg[\,L_1^b \;+\; (L_2^b-L_1^b)\,\frac{1}{1-e^{-k(A_2-A_1)}} \;-\;
+          (L_2^b-L_1^b)\,\frac{e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\bigg]^{1/b}\\
+  L_t &=& \left[\:L_1^b\;+\;(L_2^b-L_1^b)\,
+          \frac{1-e^{-k(t-A_1)}}{1-e^{-k(A_2-A_1)}}\,\right]^{1/b}
+\end{eqnarray*}
 
 ```{r}
 schnute <- function(t, L1, L2, k, b, A1, A2)
