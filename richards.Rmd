@@ -215,7 +215,7 @@ demonstrated in Section \ref{sec:special_cases}.
 ## Proof of `ss3_code()` being equivalent to `schnute()`
 
 The above demonstrations comparing the Stock Synthesis output, `ss3_code()` and
-`schnute()` indicates that they are mathematically equivalent, meaning that the
+`schnute()` indicate that they are mathematically equivalent, meaning that the
 same parameter input produces the same growth curve. The equivalence can also be
 proven algebraically.
 
@@ -273,7 +273,7 @@ schnute <- function(t, L1, L2, k, b, A1, A2)
 
 The FSA package on CRAN (Ogle et al. 2023) is a useful reference to navigate
 through the plethora of alternative parametrizations of different growth curves.
-Among the FSA function calls that are relevant to this vignette are
+Among the FSA function calls that are relevant to this vignette are:
 
 ```
 library(FSA)
