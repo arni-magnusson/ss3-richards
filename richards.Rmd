@@ -202,7 +202,7 @@ produce a wide variety of shapes, based on the value of the $b$ parameter, as
 demonstrated in Section \ref{sec:b_combinations}. When $A_1$ is greater than the
 youngest age in the model, some combinations of Richards growth parameters can
 lead to undefined (`NaN`) predicted length for the younger ages. The choice of
-$A_1$ and $A_2$ will affect the possible growth curves shapes.
+$A_1$ and $A_2$ will affect the possible growth curve shapes.
 
 The one value of $b$ that is not allowed when using the Richards growth curve in
 Stock Synthesis is $b\!=\!0$. This also holds for the R functions `ss3_code()`
