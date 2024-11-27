@@ -273,7 +273,7 @@ schnute <- function(t, L1, L2, k, b, A1, A2)
 
 The FSA package on CRAN (Ogle et al. 2023) is a useful reference to navigate
 through the plethora of alternative parametrizations of different growth curves.
-Among the FSA function calls that are relevant to this vignette are
+Among the FSA function calls that are relevant to this vignette are:
 
 ```
 library(FSA)
