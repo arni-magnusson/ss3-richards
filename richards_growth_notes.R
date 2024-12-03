@@ -16,7 +16,7 @@ t <- 0:20
 
 growth_Arni <- function(t, L1, L2, k, b, A1, A2)
 {
-  (L1^b + (L2^b-L1^b) * ((1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1)))))^(1/b)
+  (L1^b + (L2^b-L1^b) * (1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1))))^(1/b)
 }
 plot(Len_Beg~Age_Beg, model$endgrowth, subset=Sex==1, ylim=c(0,80))
 lines(t, growth_Arni(t, L1, L2, k, b, A1, A2))
