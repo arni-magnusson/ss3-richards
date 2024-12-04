@@ -265,7 +265,7 @@ $L_t ~=~ \left[\:L_1^b\;+\;(L_2^b-L_1^b)\,
 ```{r}
 schnute <- function(t, L1, L2, k, b, A1, A2)
 {
-  (L1^b + (L2^b-L1^b) * ((1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1)))))^(1/b)
+  (L1^b + (L2^b-L1^b) * (1-exp(-k*(t-A1))) / (1-exp(-k*(A2-A1))))^(1/b)
 }
 ```
 
