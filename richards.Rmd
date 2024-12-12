@@ -136,7 +136,7 @@ print(comparison, row.names=FALSE)
 \label{sec:special_cases}
 
 Special cases of the Richards curve include the von Bertalanffy ($b\!=\!1$) and
-Gompertz ($b\!\to\!1$) models. In the plot below, the lines are drawn using the
+Gompertz ($b\!\to\!0$) models. In the plot below, the lines are drawn using the
 actual von Bertalanffy and Gompertz functions, and the circles are drawn using
 the Richards curve with the appropriate values for the $b$ parameter.
 
